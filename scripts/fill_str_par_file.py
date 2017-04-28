@@ -32,7 +32,7 @@ def fill_str_par_file(num_str, num_inds):
     input_file.write('//Sample sizes: 2*N \n')
     sample_size = 2*num_inds
     input_file.write('%d \n' % sample_size)
-    input_file.write('//Growth rates  : negative growth implies population expansion \n') 
+    input_file.write('//Growth rates  : negative growth implies population expansion \n')
     input_file.write('0 \n')
     input_file.write('//Number of migration matrices : \n')
     input_file.write('0 \n')
@@ -55,9 +55,9 @@ def fill_str_par_file(num_str, num_inds):
 if __name__ == '__main__':
 
     # str_values is an array of all possible numbers of STRs
-    str_values = [0, 25, 50, 100, 500, 1000, 2000, 3000, 4000, 5000, 10000]
+    str_values = [0, 25, 50, 100, 500, 1000, 2000, 5000, 10000]
     # ind_values is an array of all possible number of individuals
-    ind_values = [1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 200]
+    ind_values = [1, 2, 5, 10, 25, 50, 100]
 
     for j in str_values:
         for k in ind_values:
