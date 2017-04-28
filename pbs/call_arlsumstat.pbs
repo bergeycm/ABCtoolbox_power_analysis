@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=1,walltime=4:00:00
+#PBS -N arlsumstat
+#PBS -m a
+#PBS -M cxb585@psu.edu
+#PBS -e localhost:${PBS_O_WORKDIR}/${PBS_JOBNAME}.e${PBS_JOBID}.${PBS_ARRAYID}
+#PBS -o localhost:${PBS_O_WORKDIR}/${PBS_JOBNAME}.o${PBS_JOBID}.${PBS_ARRAYID}
+
+# Call with qsub -t 1-[number of par files] pbs/call_fastsimcoal.pbs
+
+# ------------------------------------------------------------------------------
+# Variables
+# ------------------------------------------------------------------------------
+
+working_dir=$PBS_O_WORKDIR
+
+module load arlsumstat/3522
+
+# ----------------------------------------------------------------------------------------
+# --- Call arlsumstat
+# ----------------------------------------------------------------------------------------
+
+cd $working_dir
+
+ARP_DIR=`find results/fastsimcoal_output/* -maxdepth 0 -type d | \
+    head -n $PBS_ARRAYID | tail -n1`
+
+echo "Processing all *.arp files in directory $ARP_DIR."
+
+for ARP in `ls $ARP_DIR/*.arp`; do
+
+    OUT=${ARP/fastsimcoal/arlsumstat}
+    OUT=`echo $OUT | sed -e "s:\(/[^/]*_[^/]*\)_1_\([^/]*\)\.arp:\1_sumstat_\2:"`
+
+    OUTDIR=`dirname $ARP | sed -e "s/fastsimcoal_output/arlsumstat_output/"`
+    mkdir -p $OUTDIR
+
+    echo -e "\tInput arp file is $ARP."
+    echo -e "\tOutput sumstat file is $OUT."
+
+    arlsumstat $ARP $OUT 0 1
+
+done
+
+exit
