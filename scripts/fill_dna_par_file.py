@@ -55,7 +55,7 @@ def fill_dna_par_file(num_dna, num_inds):
 if __name__ == '__main__':
 
     # dna_values is an array of all counts of DNA sequences, linked and unlinked
-    dna_values = [0, 500, 1000, 2000, 5000, 10000, 15000]
+    dna_values = [500, 1000, 2000, 5000, 10000, 15000]
     # ind_values is an array of all possible number of individuals
     ind_values = [1, 2, 5, 10, 25, 50, 100]
 

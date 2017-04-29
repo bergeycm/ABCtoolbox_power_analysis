@@ -55,7 +55,7 @@ def fill_str_par_file(num_str, num_inds):
 if __name__ == '__main__':
 
     # str_values is an array of all possible numbers of STRs
-    str_values = [0, 25, 50, 100, 500, 1000, 2000, 5000, 10000]
+    str_values = [25, 50, 100, 500, 1000, 2000, 5000, 10000]
     # ind_values is an array of all possible number of individuals
     ind_values = [1, 2, 5, 10, 25, 50, 100]
 
