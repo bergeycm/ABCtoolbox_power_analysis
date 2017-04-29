@@ -29,3 +29,6 @@ qsub -t 1-$ARP_DIR_CT pbs/call_arlsumstat.pbs
 
 rm ssdefs.txt
 rm arl_run.ars
+
+# --- Combine DNA and STR summary statistics
+sh scirpts/combine_sumstats.sh
