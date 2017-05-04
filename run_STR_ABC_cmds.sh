@@ -31,4 +31,5 @@ rm ssdefs.txt
 rm arl_run.ars
 
 # --- Combine DNA and STR summary statistics
-sh scirpts/combine_sumstats.sh
+sh scripts/combine_sumstats.sh
+

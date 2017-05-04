@@ -46,8 +46,23 @@ for i in ${IND_CTS[*]}; do
                 paste $OUT_OBS_FILE.part1 $OUT_OBS_FILE.part2 > $OUT_OBS_FILE
                 rm $OUT_OBS_FILE.part*
 
+                FULL_OBS=$OUT_DIR/both_sum_stats_DNA${d}_STR${s}_IND${i}.txt
+
+                # Write header
+                if [[ $r == 1 ]]; then
+                    head -n1 $OUT_OBS_FILE > $FULL_OBS
+                fi
+
+                sed "1d" $OUT_OBS_FILE >> $FULL_OBS
+
                 echo -e "\t\t\tCombined output file is [$OUT_OBS_FILE]."
             done
+
+            # Combine iterations into single file
+            # full.obs = read.table("results/combined_sum_stats/both_sum_stats_DNA500_STR100_IND25.txt", header=TRUE)
+            # full.obs$sim = 1:nrow(full.obs)
+            # write.table(full.obs[c(11,1:10)], file="results/combined_sum_stats/both_sum_stats_DNA500_STR100_IND25.fix.txt", sep="\t", quote=FALSE)
+
         done
     done
 done
