@@ -41,10 +41,6 @@ EST_FILE="DNA_and_STR.est"
 PAR_FILE_DNA="DNA_${PARAM_d}_${PARAM_i}.par"
 PAR_FILE_STR="STR_${PARAM_s}_${PARAM_i}.par"
 
-# --- Transform N into log(N)
-#PARAM_N_min_log=$(echo "l($PARAM_N_min)" | bc -l)
-#PARAM_N_max_log=$(echo "l($PARAM_N_max)" | bc -l)
-
 # --- Transform N into log(N) - Base 10!
 PARAM_N_min_log=$(echo "l($PARAM_N_min)/l(10)" | bc -l)
 PARAM_N_max_log=$(echo "l($PARAM_N_max)/l(10)" | bc -l)
@@ -71,9 +67,10 @@ echo -e "0\tGAMMA\tunif\t8\t15" >> $EST_FILE
 
 echo -e "" >> $EST_FILE
 
-echo -e "[RULES]" >> $EST_FILE
-echo -e "LOG_N_ANCESTRAL > LOG_N_NOW" >> $EST_FILE
-echo -e "" >> $EST_FILE
+# Add this back in if we ever want to test only pop growths or pop declines
+# echo -e "[RULES]" >> $EST_FILE
+# echo -e "LOG_N_ANCESTRAL > LOG_N_NOW" >> $EST_FILE
+# echo -e "" >> $EST_FILE
 
 echo -e "[COMPLEX PARAMETERS]" >> $EST_FILE
 echo -e "1\tN_NOW = pow10( LOG_N_NOW )" >> $EST_FILE
@@ -107,15 +104,16 @@ echo "$PARAM_d 1" >> $PAR_FILE_DNA
 
 cp $PAR_FILE_DNA $PAR_FILE_STR
 
-#for i in `seq 1 $PARAM_d`; do
-    echo "//Per chromosome: Number of linkage blocks" >> $PAR_FILE_DNA
-    echo "1" >> $PAR_FILE_DNA
-    echo "//per Block: data type, num loci, rec. rate and mut rate + " \
-         "optional parameters" >> $PAR_FILE_DNA
-    echo "DNA 500 0.00000 0.00000002 0.33" >> $PAR_FILE_DNA
-#done
+# --- DNA
+echo "//Per chromosome: Number of linkage blocks" >> $PAR_FILE_DNA
+echo "1" >> $PAR_FILE_DNA
+echo "//per Block: data type, num loci, rec. rate and mut rate + " \
+     "optional parameters" >> $PAR_FILE_DNA
+echo "DNA 500 0.00000 0.00000002 0.33" >> $PAR_FILE_DNA
 
-
+# --- STR
+echo "//Per chromosome: Number of linkage blocks" >> $PAR_FILE_STR
+echo "1" >> $PAR_FILE_STR
 echo "//per Block: data type, num loci, rec. rate and mut rate + " \
      "optional parameters" >> $PAR_FILE_STR
 echo "MICROSAT 1 0.0000 0.0005 0 0" >> $PAR_FILE_STR
@@ -133,27 +131,9 @@ echo "MICROSAT 1 0.0000 0.0005 0 0" >> $PAR_FILE_STR
 
 # ----------------------------------------------------------------------------------------
 # --- Create fake placeholder observation file
+# --- ABCsampler needs it, even if not used during sampling, to ensure that the
+# --- correct summary stats are being generated
 # ----------------------------------------------------------------------------------------
-
-#echo -e "LOG_N_NOW\tLOG_N_ANCESTRAL\tT_SHRINK\tSTR_MUTATION\tMTDNA_MUTATION\tGAMMA\t" \
-#        "H_1\tS_1\tD_1\tFS_1\tPi_1\tKsd_1\tHsd_1\tGW_1\tR_1\tRsd_1" > fake.obs
-#echo -e "100\t100\t100\t0.01\t0.01\t0.01\t1" \
-#        "0.1\t0.1\t0.1\t0.1\t0.1\t0.1\t0.1\t0.1\t0.1\t0.1" >> fake.obs
-#
-#echo -e "GAMMA\tLOG_N_ANCESTRAL\tLOG_N_NOW\tMTDNA_MUTATION\tSTR_MUTATION\tT_SHRINK\t" \
-#        "N_ANCESTRAL\tN_ANCESTRAL_REL\tN_NOW\tN_NOW_MTDNA\tN_NOW_REL\t" \
-#        "H_1" > fake.obs
-#echo -e "9.99502\t10.0185\t5.88774\t4.76461e-07\t6.01922e-05\t98\t1\t1.29498e-06\t772211\t193053\t772211\t" \
-#        "0.1" >> fake.obs
-#
-#echo -e "GAMMA\tLOG_N_ANCESTRAL\tLOG_N_NOW\tMTDNA_MUTATION\tSTR_MUTATION\tT_SHRINK\t" \
-#        "N_ANCESTRAL\tN_ANCESTRAL_REL\tN_NOW\tN_NOW_MTDNA\tN_NOW_REL\t" \
-#        "H_1" > fake.obs
-#echo -e "9.99502\t10.0185\t5.88774\t4.76461e-07\t6.01922e-05\t98\t1\t1.29498e-06\t772211\t193053\t772211\t" \
-#        "0.1" >> fake.obs
-
-#echo -e "H_1\tS_1\tD_1\tFS_1\tPi_1\tKsd_1\tHsd_1\tGW_1\tR_1\tRsd_1" > fake.obs
-#echo -e "0.1\t0.1\t0.1\t0.1\t0.1\t0.1\t0.1\t0.1\t0.1\t0.1" >> fake.obs
 
 echo -e "H_1\tS_1\tD_1\tFS_1\tPi_1\t" > fake_DNA.obs
 echo -e "0.1\t0.1\t0.1\t0.1\t0.1" >> fake_DNA.obs
@@ -167,24 +147,21 @@ echo -e "0.1\t0.1\t0.1\t0.1\t0.1" >> fake_STR.obs
 
 echo "samplerType standard" > $SAMPLER_INPUT
 echo "estName $EST_FILE" >> $SAMPLER_INPUT
-#echo "//obsName dna_${PARAM_d}_${PARAM_i}_sum_stats_TEST.obs;str_${PARAM_s}_${PARAM_i}_sum_stats_TEST.obs" >> $SAMPLER_INPUT
-echo "obsName fake_DNA.obs" >> $SAMPLER_INPUT
-#echo "//simDataName dna_${PARAM_d}_${PARAM_i}_sum_stats_TEST.arp;str_${PARAM_s}_${PARAM_i}_sum_stats_TEST.arp" >> $SAMPLER_INPUT
-echo "outName example_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}" >> $SAMPLER_INPUT
+echo "obsName fake_DNA.obs;fake_STR.obs" >> $SAMPLER_INPUT
+echo "outName ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}" >> $SAMPLER_INPUT
 echo "separateOutputFiles 1" >> $SAMPLER_INPUT
 echo "nbSims 1000" >> $SAMPLER_INPUT
 echo "writeHeader 1" >> $SAMPLER_INPUT
 echo "simulationProgram fsc25" >> $SAMPLER_INPUT
-##echo "simInputName ${PAR_FILE_DNA};${PAR_FILE_STR}" >> $SAMPLER_INPUT
-###echo "simInputName ${PAR_FILE_DNA}" >> $SAMPLER_INPUT
+echo "simInputName ${PAR_FILE_DNA};${PAR_FILE_STR}" >> $SAMPLER_INPUT
+echo "simParam -i#SIMINPUTNAME#-n#1;-i#SIMINPUTNAME#-n#1" >> $SAMPLER_INPUT
 ##echo "simParam -i#${PAR_FILE_DNA}#-n#1;-i#${PAR_FILE_STR}#-n#1" >> $SAMPLER_INPUT
 ##echo "simParam -i#${PAR_FILE_DNA}#-n#1" >> $SAMPLER_INPUT
-echo "simInputName ${PAR_FILE_DNA}" >> $SAMPLER_INPUT
-echo "simParam -i#SIMINPUTNAME#-n#1" >> $SAMPLER_INPUT
 echo "sumStatProgram arlsumstat" >> $SAMPLER_INPUT
 ###echo "sumStatParam SIMDATANAME#SSFILENAME#0#1" >> $SAMPLER_INPUT
-echo "sumStatParam ${PAR_FILE_DNA/.par}-temp/${PAR_FILE_DNA/.par}-temp_1_1.arp#SSFILENAME#0#1" >> $SAMPLER_INPUT
-      # arlsumstat $ARP        $OUT       0 1
+echo "simDataName $PAR_FILE_DNA;$PAR_FILE_STR" >> $SAMPLER_INPUT
+#        arlsumstat $ARP                                                        $OUT       0 1
+echo "sumStatParam ${PAR_FILE_DNA/.par}-temp/${PAR_FILE_DNA/.par}-temp_1_1.arp#SSFILENAME#0#1;${PAR_FILE_STR/.par}-temp/${PAR_FILE_STR/.par}-temp_1_1.arp#SSFILENAME#0#1" >> $SAMPLER_INPUT
 
 cp ../../../data/arl_run.ars .
 cp ../../../data/ssdefs.txt .
