@@ -20,14 +20,17 @@ PARAM_t_min=$6
 # Time since pop size change - minimum in uniform distribution
 PARAM_t_max=$7
 
+# Number of simulations to run
+NUM_SIMS=$8
+
 # Output directory
-OUT_DIR=$8
+OUT_DIR=$9
 
 # ----------------------------------------------------------------------------------------
-# Example:
-PARAM_d=500; PARAM_s=100; PARAM_i=25;
-PARAM_N_min=100; PARAM_N_max=10000; PARAM_t_min=1; PARAM_t_max=100
-OUT_DIR=results/simulated_data/broad/
+#    # Example:
+#    PARAM_d=500; PARAM_s=100; PARAM_i=25;
+#    PARAM_N_min=100; PARAM_N_max=10000; PARAM_t_min=1; PARAM_t_max=100
+#    OUT_DIR=results/simulated_data/broad/
 # ----------------------------------------------------------------------------------------
 
 cd $SCRATCH/STR_power_analysis/ABCtoolbox_power_analysis
@@ -151,7 +154,7 @@ echo "estName $EST_FILE" >> $SAMPLER_INPUT
 echo "obsName fake_DNA.obs;fake_STR.obs" >> $SAMPLER_INPUT
 echo "outName ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}" >> $SAMPLER_INPUT
 echo "separateOutputFiles 1" >> $SAMPLER_INPUT
-echo "nbSims 1000" >> $SAMPLER_INPUT
+echo "nbSims $NUM_SIMS" >> $SAMPLER_INPUT
 echo "writeHeader 1" >> $SAMPLER_INPUT
 echo "simulationProgram fsc25" >> $SAMPLER_INPUT
 echo "simInputName ${PAR_FILE_DNA};${PAR_FILE_STR}" >> $SAMPLER_INPUT
@@ -177,9 +180,9 @@ ln -s `which arlsumstat` arlsumstat
 
 # --- Combine output results tables
 
-join ABCsampler_output_DNA500_STR100_IND25_Obs0_sampling1.txt \
-     ABCsampler_output_DNA500_STR100_IND25_Obs1_sampling1.txt | \
-     tr " " "\t" | cut -f 1-17,29-33 > ABCsampler_output_DNA500_STR100_IND25.sumstats.txt
+join ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}_Obs0_sampling1.txt \
+     ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}_Obs1_sampling1.txt | \
+     tr " " "\t" | cut -f 1-17,29-33 > ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}.sumstats.txt
 
 # ----------------------------------------------------------------------------------------
 # --- Write input file for ABCestimator
@@ -187,7 +190,7 @@ join ABCsampler_output_DNA500_STR100_IND25_Obs0_sampling1.txt \
 
 echo "//inputfile for the program ABCestimator" > $ESTIMATOR_INPUT
 echo "estimationType standard" >> $ESTIMATOR_INPUT
-echo "simName ABCsampler_output_DNA500_STR100_IND25.sumstats.txt" >> $ESTIMATOR_INPUT
+echo "simName ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}.sumstats.txt" >> $ESTIMATOR_INPUT
 echo "obsName pseudoObservedData.obs" >> $ESTIMATOR_INPUT
 echo "params 3-12" >> $ESTIMATOR_INPUT
 echo "//rejection" >> $ESTIMATOR_INPUT
@@ -204,7 +207,7 @@ ITER_NUM=1
 OBS_LINE=$((ITER_NUM + 1))
 
 sed -n -e '1p' -e "${OBS_LINE}p" \
-    ABCsampler_output_DNA500_STR100_IND25.sumstats.txt \
+    ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}.sumstats.txt \
     | cut -f 13-22 > pseudoObservedData.obs
 
 ~/bin/ABCtoolbox/binaries/linux/ABCestimator $ESTIMATOR_INPUT
