@@ -40,6 +40,7 @@ SAMPLER_INPUT=ABCsampler.input
 EST_FILE="DNA_and_STR.est"
 PAR_FILE_DNA="DNA_${PARAM_d}_${PARAM_i}.par"
 PAR_FILE_STR="STR_${PARAM_s}_${PARAM_i}.par"
+ESTIMATOR_INPUT=ABCestimator.input
 
 # --- Transform N into log(N) - Base 10!
 PARAM_N_min_log=$(echo "l($PARAM_N_min)/l(10)" | bc -l)
@@ -173,3 +174,46 @@ ln -s `which fsc25` fsc25
 ln -s `which arlsumstat` arlsumstat
 
 ~/bin/ABCtoolbox/binaries/linux/ABCsampler $SAMPLER_INPUT
+
+# --- Combine output results tables
+
+join ABCsampler_output_DNA500_STR100_IND25_Obs0_sampling1.txt \
+     ABCsampler_output_DNA500_STR100_IND25_Obs1_sampling1.txt | \
+     tr " " "\t" | cut -f 1-17,29-33 > ABCsampler_output_DNA500_STR100_IND25.sumstats.txt
+
+# ----------------------------------------------------------------------------------------
+# --- Write input file for ABCestimator
+# ----------------------------------------------------------------------------------------
+
+echo "//inputfile for the program ABCestimator" > $ESTIMATOR_INPUT
+echo "estimationType standard" >> $ESTIMATOR_INPUT
+echo "simName ABCsampler_output_DNA500_STR100_IND25.sumstats.txt" >> $ESTIMATOR_INPUT
+echo "obsName pseudoObservedData.obs" >> $ESTIMATOR_INPUT
+echo "params 3-12" >> $ESTIMATOR_INPUT
+echo "//rejection" >> $ESTIMATOR_INPUT
+echo "numRetained 5000" >> $ESTIMATOR_INPUT
+echo "maxReadSims 5000" >> $ESTIMATOR_INPUT
+echo "//parameters for posterior estimation" >> $ESTIMATOR_INPUT
+echo "diracPeakWidth 0.01" >> $ESTIMATOR_INPUT
+echo "posteriorDensityPoints 200" >> $ESTIMATOR_INPUT
+echo "stadardizeStats 1" >> $ESTIMATOR_INPUT
+echo "writeRetained 1" >> $ESTIMATOR_INPUT
+
+ITER_NUM=1
+
+OBS_LINE=$((ITER_NUM + 1))
+
+sed -n -e '1p' -e "${OBS_LINE}p" \
+    ABCsampler_output_DNA500_STR100_IND25.sumstats.txt \
+    | cut -f 13-22 > pseudoObservedData.obs
+
+~/bin/ABCtoolbox/binaries/linux/ABCestimator $ESTIMATOR_INPUT
+
+# Creates:
+#  ABC_GLM_BestSimsParamStats_Obs0.txt
+#  ABC_GLM_L1DistancePriorPosterior.txt
+#  ABC_GLM_PosteriorEstimates_Obs0.txt
+#  ABC_GLM_PosteriorCharacteristics_Obs0.txt
+
+#module load R
+#R --vanilla $ESTIMATOR_INPUT < ~/bin/ABCtoolbox/scripts/plotPosteriorsGLM.r
