@@ -1,3 +1,6 @@
 *cyberstar*
 *~
-
+.snakemake
+*.obs
+*.input
+ABC_GLM_*

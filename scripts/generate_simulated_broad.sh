@@ -105,12 +105,12 @@ echo "//historical event: time, source, sink, migrants, new size, " \
      "new growth rate, migration matrix" >> $PAR_FILE_DNA
 echo "1 historical event" >> $PAR_FILE_DNA
 echo "T_SHRINK 0 0 0 N_NOW_REL 0 0" >> $PAR_FILE_DNA
-echo "//Number of independent loci [chromosome]" >> $PAR_FILE_DNA
-echo "$PARAM_d 1" >> $PAR_FILE_DNA
 
 cp $PAR_FILE_DNA $PAR_FILE_STR
 
 # --- DNA
+echo "//Number of independent loci [chromosome]" >> $PAR_FILE_DNA
+echo "$PARAM_d 1" >> $PAR_FILE_DNA
 echo "//Per chromosome: Number of linkage blocks" >> $PAR_FILE_DNA
 echo "1" >> $PAR_FILE_DNA
 echo "//per Block: data type, num loci, rec. rate and mut rate + " \
@@ -118,6 +118,8 @@ echo "//per Block: data type, num loci, rec. rate and mut rate + " \
 echo "DNA 500 0.00000 0.00000002 0.33" >> $PAR_FILE_DNA
 
 # --- STR
+echo "//Number of independent loci [chromosome]" >> $PAR_FILE_STR
+echo "$PARAM_s 1" >> $PAR_FILE_STR
 echo "//Per chromosome: Number of linkage blocks" >> $PAR_FILE_STR
 echo "1" >> $PAR_FILE_STR
 echo "//per Block: data type, num loci, rec. rate and mut rate + " \
@@ -155,7 +157,7 @@ echo "samplerType standard" > $SAMPLER_INPUT
 echo "estName $EST_FILE" >> $SAMPLER_INPUT
 echo "obsName fake_DNA.obs;fake_STR.obs" >> $SAMPLER_INPUT
 echo "outName ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}" >> $SAMPLER_INPUT
-echo "separateOutputFiles 1" >> $SAMPLER_INPUT
+echo "separateOutputFiles 0" >> $SAMPLER_INPUT
 echo "numSims $NUM_SIMS" >> $SAMPLER_INPUT
 echo "writeHeader 1" >> $SAMPLER_INPUT
 echo "simProgram fsc25;fsc25" >> $SAMPLER_INPUT
@@ -169,7 +171,8 @@ echo "sumStatProgram arlsumstat;arlsumstat" >> $SAMPLER_INPUT
 echo "simDataName ${PAR_FILE_DNA/.par/-temp.par};${PAR_FILE_STR/.par/-temp.par}" >> $SAMPLER_INPUT
 #       arlsumstat $ARP                                                        $OUT          0 1
 #echo "sumStatArgs ${PAR_FILE_DNA/.par}-temp/${PAR_FILE_DNA/.par}-temp_1_1.arp ${PAR_FILE_DNA/.par/-temp.par} 0 1;${PAR_FILE_STR/.par}-temp/${PAR_FILE_STR/.par}-temp_1_1.arp ${PAR_FILE_STR/.par/-temp.par} 0 1" >> $SAMPLER_INPUT
-echo "sumStatArgs ${PAR_FILE_DNA/.par}-temp/${PAR_FILE_DNA/.par}-temp_1_1.arp summary_stats-temp.txt 0 1;${PAR_FILE_STR/.par}-temp/${PAR_FILE_STR/.par}-temp_1_1.arp summary_stats-temp.txt 0 1" >> $SAMPLER_INPUT
+echo "sumStatArgs ${PAR_FILE_DNA/.par}-temp/${PAR_FILE_DNA/.par}-temp_1_1.arp summary_stats-temp.DNA.txt 0 1;${PAR_FILE_STR/.par}-temp/${PAR_FILE_STR/.par}-temp_1_1.arp summary_stats-temp.STR.txt 0 1" >> $SAMPLER_INPUT
+echo "sumStatName summary_stats-temp.DNA.txt;summary_stats-temp.STR.txt" >> $SAMPLER_INPUT
 echo "task simulate" >> $SAMPLER_INPUT
 echo "verbose" >> $SAMPLER_INPUT
 
@@ -181,8 +184,4 @@ ln -s `which arlsumstat` arlsumstat
 
 ABCtoolbox $SAMPLER_INPUT
 
-# --- Combine output results tables
-
-join ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}_Obs0_sampling1.txt \
-     ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}_Obs1_sampling1.txt | \
-     tr " " "\t" | cut -f 1-17,29-33 > ABCsampler_output_DNA${PARAM_d}_STR${PARAM_s}_IND${PARAM_i}.sumstats.txt
+# Results in ABCsampler_output_DNA1000_STR1000_IND25_sampling1.txt
