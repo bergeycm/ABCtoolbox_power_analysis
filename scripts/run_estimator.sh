@@ -26,8 +26,8 @@ echo "obsName pseudoObservedData_Obs${ITER_NUM}.obs" >> $ESTIMATOR_INPUT
 echo "params 3-12" >> $ESTIMATOR_INPUT
 echo "//rejection" >> $ESTIMATOR_INPUT
 #echo "numRetained 1000000" >> $ESTIMATOR_INPUT
-echo "tolerance 0.05" >> $ESTIMATOR_INPUT
-echo "maxReadSims 1000000" >> $ESTIMATOR_INPUT
+echo "tolerance 0.01" >> $ESTIMATOR_INPUT
+echo "maxReadSims 100000000" >> $ESTIMATOR_INPUT
 echo "//parameters for posterior estimation" >> $ESTIMATOR_INPUT
 echo "diracPeakWidth 0.01" >> $ESTIMATOR_INPUT
 echo "posteriorDensityPoints 200" >> $ESTIMATOR_INPUT
@@ -43,7 +43,8 @@ sed -n -e '1p' -e "${OBS_LINE}p" $SUM_STATS \
 # Set output prefix to inclue observation number
 echo "outputPrefix ABC_GLM_Obs${ITER_NUM}_" >> $ESTIMATOR_INPUT
 
-ABCtoolbox $ESTIMATOR_INPUT &> /dev/null
+#ABCtoolbox $ESTIMATOR_INPUT &> /dev/null
+ABCtoolbox $ESTIMATOR_INPUT &> tmp_est_output.Obs${ITER_NUM}.txt
 
 # Creates:
 #  ABC_GLM_Obs8_model0_BestSimsParamStats_Obs0.txt

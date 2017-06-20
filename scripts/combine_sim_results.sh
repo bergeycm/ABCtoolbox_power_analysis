@@ -17,7 +17,7 @@ SS_FILES=($(ls results/simulated_data/sim_${DSI_STRING}_part*/$SS_FILENAME))
 head -n1 ${SS_FILES[0]} | sed -e "s/Obs._//g" > ${COMBINED_OUT}_temp
 
 for ss in ${SS_FILES[*]}; do
-    tail -n+2 $ss >> $COMBINED_OUT_temp
+    tail -n+2 $ss >> ${COMBINED_OUT}_temp
 done
 
 # --- Find out which columns are invariant

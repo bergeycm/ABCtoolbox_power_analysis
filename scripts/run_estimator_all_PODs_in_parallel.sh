@@ -25,6 +25,6 @@ TOTAL_PODS=`wc -l $SUMSTATS | cut -d' ' -f1`
 TOTAL_PODS=$((TOTAL_PODS - 1))
 
 seq 1 $TOTAL_PODS | shuf | head -n $SAMPLE | \
-    parallel --progress --jobs 20 \
+    parallel --jobs 20 \
         sh scripts/run_estimator.sh $PARAM_d $PARAM_s $PARAM_i {} > \
     $OUT_FILE

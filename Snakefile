@@ -22,11 +22,16 @@ for dsi in dsi_vals:
     dsi_ids.append(dsi_str)
 
 import string
-letters = list(string.ascii_uppercase)[0:20]
+import itertools
+letters = list(string.ascii_uppercase)
+letter_combos = ["".join(i) for i in itertools.product(letters, letters)]
+# Reuce from 676 down to 500 to do 500 sets of 100,000 (AKA 50,000,000)
+letter_combos = letter_combos[0:500]
+
 dsi_parts = list()
 for dsi_id in dsi_ids:
-    for letter in letters:
-        dsi_parts.append(dsi_id + "_part" + letter)
+    for letcmb in letter_combos:
+        dsi_parts.append(dsi_id + "_part" + letcmb)
 
 # ----------------------------------------------------------------------------------------
 # --- Make all
@@ -36,7 +41,7 @@ rule all:
     input:
         # do_simulation:
         expand("results/simulated_data/sim_{dsi_id}_part{letter}/ABCsampler_output_{dsi_id}_sampling1.txt",
-            dsi_id=dsi_ids, letter=letters),
+            dsi_id=dsi_ids, letter=letter_combos),
         # combine_sim_results:
         expand("results/simulated_data/ABCsampler_output_{dsi_id}.sumstats.combined.txt",
             dsi_id=dsi_ids),
@@ -71,7 +76,7 @@ rule do_simulation:
 rule combine_sim_results:
     input:
         expand("results/simulated_data/sim_{dsi_id}_part{letter}/ABCsampler_output_{dsi_id}_sampling1.txt",
-            dsi_id=dsi_ids, letter=letters)
+            dsi_id=dsi_ids, letter=letter_combos)
     output:
         "results/simulated_data/ABCsampler_output_{dsi_id}.sumstats.combined.txt"
     threads: 1
@@ -92,7 +97,7 @@ rule run_estimator:
     output:
         "results/estimator_output/ABCestimator.{dsi_id}.results.txt"
     threads: 20
-    params: runtime="1",
+    params: runtime="12",
             mem=",mem=5gb"
     shell:
         "DSI_VALS=`echo '{wildcards.dsi_id}' | "

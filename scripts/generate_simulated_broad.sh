@@ -32,7 +32,7 @@ module load abctoolbox/2.0
 
 # ----------------------------------------------------------------------------------------
 #    # Example:
-#    PARAM_d=500; PARAM_s=100; PARAM_i=25;
+#    PARAM_d=999; PARAM_s=999; PARAM_i=24;
 #    PARAM_N_min=100; PARAM_N_max=10000; PARAM_t_min=1; PARAM_t_max=100
 #    OUT_DIR=results/simulated_data/broad/
 # ----------------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ echo -e "" >> $EST_FILE
 echo "//Number of population samples (demes)" > $PAR_FILE_DNA
 echo "1" >> $PAR_FILE_DNA
 echo "//Population effective sizes (number of genes)" >> $PAR_FILE_DNA
-echo "N_ANCESTRAL" >> $PAR_FILE_DNA
+echo "N_NOW" >> $PAR_FILE_DNA
 echo "//Sample sizes: 2*N" >> $PAR_FILE_DNA
 echo $((PARAM_i * 2)) >> $PAR_FILE_DNA
 echo "//Growth rates  : negative growth implies population expansion" >> $PAR_FILE_DNA
@@ -110,7 +110,7 @@ cp $PAR_FILE_DNA $PAR_FILE_STR
 
 # --- DNA
 echo "//Number of independent loci [chromosome]" >> $PAR_FILE_DNA
-echo "$PARAM_d 1" >> $PAR_FILE_DNA
+echo "$PARAM_d 0" >> $PAR_FILE_DNA
 echo "//Per chromosome: Number of linkage blocks" >> $PAR_FILE_DNA
 echo "1" >> $PAR_FILE_DNA
 echo "//per Block: data type, num loci, rec. rate and mut rate + " \
@@ -119,7 +119,7 @@ echo "DNA 500 0.00000 0.00000002 0.33" >> $PAR_FILE_DNA
 
 # --- STR
 echo "//Number of independent loci [chromosome]" >> $PAR_FILE_STR
-echo "$PARAM_s 1" >> $PAR_FILE_STR
+echo "$PARAM_s 0" >> $PAR_FILE_STR
 echo "//Per chromosome: Number of linkage blocks" >> $PAR_FILE_STR
 echo "1" >> $PAR_FILE_STR
 echo "//per Block: data type, num loci, rec. rate and mut rate + " \
@@ -128,14 +128,23 @@ echo "MICROSAT 1 0.0000 0.0005 0 0" >> $PAR_FILE_STR
 
 # Test:
 # module load fastsimcoal
-# sed -e "s/N_ANCESTRAL/1000000/" -e "s/T_SHRINK/5000/" -e "s/N_NOW_REL/0.001/" $PAR_FILE_DNA > tmp.par
-# fsc25 -i tmp.par -n 1000
+# module load arlsumstat
+# cp $ARLSUMSTAT_DIR/arl_run.modified.ars arl_run.ars
+# cp $ARLSUMSTAT_DIR/ssdefs.modified.txt  ssdefs.txt
+# - DNA:
+# sed -e "s/N_NOW$/1000000/" -e "s/T_SHRINK/5000/" -e "s/N_NOW_REL/0.001/" $PAR_FILE_DNA > tmp.par
+# fsc25 -i tmp.par -n 1
+# arlsumstat tmp/tmp_1_1.arp summary_stats-temp.DNA.txt 0 1
 # rm -r tmp/
 # rm tmp.par
-# sed -e "s/N_ANCESTRAL/1000000/" -e "s/T_SHRINK/5000/" -e "s/N_NOW_REL/0.001/" $PAR_FILE_STR > tmp.par
-# fsc25 -i tmp.par -n 1000
+# rm summary_stats-temp.DNA.txt
+# - STRs:
+# sed -e "s/N_NOW$/1000000/" -e "s/T_SHRINK/5000/" -e "s/N_NOW_REL/0.001/" $PAR_FILE_STR > tmp.par
+# fsc25 -i tmp.par -n 1
+# arlsumstat tmp/tmp_1_1.arp summary_stats-temp.STR.txt 0 1
 # rm -r tmp/
 # rm tmp.par
+# rm summary_stats-temp.STR.txt
 
 # ----------------------------------------------------------------------------------------
 # --- Create fake placeholder observation file
@@ -184,4 +193,4 @@ ln -s `which arlsumstat` arlsumstat
 
 ABCtoolbox $SAMPLER_INPUT
 
-# Results in ABCsampler_output_DNA1000_STR1000_IND25_sampling1.txt
+# Results in ABCsampler_output_DNA*_STR*_IND*_sampling1.txt
