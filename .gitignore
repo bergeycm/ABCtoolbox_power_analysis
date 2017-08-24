@@ -4,3 +4,7 @@
 *.obs
 *.input
 ABC_GLM_*
+.*
+*elise*pdf
+*tmp*
+misc

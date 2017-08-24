@@ -7,14 +7,17 @@
 # --- Variables
 # ----------------------------------------------------------------------------------------
 
-dsi_vals = [[10000, 10000, 25],
+dsi_vals = [[ 1000, 40000, 25],
+            [ 5000,  5000, 25],
             [ 1000,  1000, 25]]
 
-# For testing, just litte ones:
-#                            
-dsi_vals = [[ 100,  100, 25],
-            [1000, 1000, 25]]
-#                            
+# For testing, just one:
+#                              
+dsi_vals = [[1000, 1000, 25]]
+#                              
+
+sim_hunk_size = 10000
+num_sim_hunks = 600
 
 dsi_ids = list()
 for dsi in dsi_vals:
@@ -24,9 +27,11 @@ for dsi in dsi_vals:
 import string
 import itertools
 letters = list(string.ascii_uppercase)
+# Increase to 3 long if doing more than 676 hunks
 letter_combos = ["".join(i) for i in itertools.product(letters, letters)]
-# Reuce from 676 down to 500 to do 500 sets of 100,000 (AKA 50,000,000)
-letter_combos = letter_combos[0:500]
+# Reuce from 676 down to num_sim_hunks to do num_sim_hunks sets of simulations
+# each of size sim_hunk_size
+letter_combos = letter_combos[0:num_sim_hunks]
 
 dsi_parts = list()
 for dsi_id in dsi_ids:
@@ -59,14 +64,15 @@ rule do_simulation:
     output:
         "results/simulated_data/sim_{dsi_part_id}/ABCsampler_output_{dsi_string}_sampling1.txt"
     threads: 1
-    params: runtime="24",
-            mem=",mem=5gb"
+    params: runtime="12",
+            mem=",mem=24gb"
     shell:
         "DSI_VALS=`echo '{wildcards.dsi_part_id}' | sed -e 's/_part*//' | "
         "tr '_' ' ' | sed -e 's/[A-Z]//g'`;"
         "sh scripts/generate_simulated_broad.sh "
         "$DSI_VALS "
-        "100 10000 1 100 100000 results/simulated_data/sim_{wildcards.dsi_part_id} "
+        "100 10000 80 400 {sim_hunk_size} "
+        "results/simulated_data/sim_{wildcards.dsi_part_id} "
         "2>&1 | tee STDOUT_STDERR_{wildcards.dsi_part_id}.log"
 
 # ----------------------------------------------------------------------------------------

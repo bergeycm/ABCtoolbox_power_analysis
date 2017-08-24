@@ -33,7 +33,8 @@ module load abctoolbox/2.0
 # ----------------------------------------------------------------------------------------
 #    # Example:
 #    PARAM_d=999; PARAM_s=999; PARAM_i=24;
-#    PARAM_N_min=100; PARAM_N_max=10000; PARAM_t_min=1; PARAM_t_max=100
+#    PARAM_N_min=100; PARAM_N_max=10000; PARAM_t_min=80; PARAM_t_max=400
+#    NUM_SIMS=100
 #    OUT_DIR=results/simulated_data/broad/
 # ----------------------------------------------------------------------------------------
 
@@ -129,19 +130,21 @@ echo "MICROSAT 1 0.0000 0.0005 0 0" >> $PAR_FILE_STR
 # Test:
 # module load fastsimcoal
 # module load arlsumstat
-# cp $ARLSUMSTAT_DIR/arl_run.modified.ars arl_run.ars
+# sed -e "s/^TaskNumber=.*/TaskNumber=18499/" $ARLSUMSTAT_DIR/arl_run.ars > arl_run.ars
 # cp $ARLSUMSTAT_DIR/ssdefs.modified.txt  ssdefs.txt
 # - DNA:
-# sed -e "s/N_NOW$/1000000/" -e "s/T_SHRINK/5000/" -e "s/N_NOW_REL/0.001/" $PAR_FILE_DNA > tmp.par
+# sed -e "s/N_NOW$/2000/" -e "s/T_SHRINK/100/" -e "s/N_NOW_REL/0.001/" $PAR_FILE_DNA > tmp.par
 # fsc25 -i tmp.par -n 1
 # arlsumstat tmp/tmp_1_1.arp summary_stats-temp.DNA.txt 0 1
+# sh ../../../scripts/add_suffix_to_sumstats.sh summary_stats-temp.DNA.txt DNA
 # rm -r tmp/
 # rm tmp.par
-# rm summary_stats-temp.DNA.txt
+# rm summary_stats-temp.DNA.txt*
 # - STRs:
-# sed -e "s/N_NOW$/1000000/" -e "s/T_SHRINK/5000/" -e "s/N_NOW_REL/0.001/" $PAR_FILE_STR > tmp.par
+# sed -e "s/N_NOW$/2000/" -e "s/T_SHRINK/100/" -e "s/N_NOW_REL/0.001/" $PAR_FILE_STR > tmp.par
 # fsc25 -i tmp.par -n 1
 # arlsumstat tmp/tmp_1_1.arp summary_stats-temp.STR.txt 0 1
+# sh ../../../scripts/add_suffix_to_sumstats.sh summary_stats-temp.STR.txt STR
 # rm -r tmp/
 # rm tmp.par
 # rm summary_stats-temp.STR.txt
@@ -152,11 +155,40 @@ echo "MICROSAT 1 0.0000 0.0005 0 0" >> $PAR_FILE_STR
 # --- correct summary stats are being generated
 # ----------------------------------------------------------------------------------------
 
-echo -e "H_1\tS_1\tD_1\tFS_1\tPi_1\t" > fake_DNA.obs
-echo -e "0.1\t0.1\t0.1\t0.1\t0.1" >> fake_DNA.obs
+# All the summary stats:
+# Both: K_1 Ksd_1 mean_K sd_K tot_K H_1 Hsd_1 mean_H sd_H tot_H
+# DNA:  S_1 prS_1 mean_S sd_S tot_S D_1 mean_D sd_D FS_1 mean_FS sd_FS Pi_1 mean_Pi sd_Pi
+# STR:  GW_1 GWsd_1 mean_GW sd_GW tot_GW NGW_1 NGWsd_1 mean_NGW sd_NGW R_1 Rsd_1 mean_R sd_R tot_R
 
-echo -e "Ksd_1\tHsd_1\tGW_1\tR_1\tRsd_1" > fake_STR.obs
-echo -e "0.1\t0.1\t0.1\t0.1\t0.1" >> fake_STR.obs
+# Common to both DNA and STRs
+echo -ne "K_1\tKsd_1\tmean_K\tsd_K\ttot_K\t" \
+         "H_1\tHsd_1\tmean_H\tsd_H\ttot_H\t" | sed -e "s/ //g" > fake_DNA.obs
+cp fake_DNA.obs fake_STR.obs
+
+# DNA specific ones
+echo -ne "S_1\tprS_1\tmean_S\tsd_S\ttot_S\tD_1\tmean_D\tsd_D\tFS_1\tmean_FS\t" \
+         "sd_FS\tPi_1\tmean_Pi\tsd_Pi\n" | sed -e "s/ //g" >> fake_DNA.obs
+
+for i in `seq 1 23`; do
+    echo -ne "0.1\t" >> fake_DNA.obs
+done
+echo -ne "0.1\n" >> fake_DNA.obs
+
+# STR specific ones
+echo -ne "GW_1\tGWsd_1\tmean_GW\tsd_GW\ttot_GW\tNGW_1\tNGWsd_1\tmean_NGW\t" \
+         "sd_NGW\tR_1\tRsd_1\tmean_R\tsd_R\ttot_R\n" | sed -e "s/ //g" >> fake_STR.obs
+
+for i in `seq 1 23`; do
+    echo -ne "0.1\t" >> fake_STR.obs
+done
+echo -ne "0.1\n" >> fake_STR.obs
+
+sh ../../../scripts/add_suffix_to_sumstats.sh fake_DNA.obs DNA
+sh ../../../scripts/add_suffix_to_sumstats.sh fake_STR.obs STR
+
+# Add suffix to last sum stat. Program ignores it because it doesn't end in a tab.
+sed -i".bak" -e "1s/$/_DNA/" fake_DNA.obs
+sed -i".bak" -e "1s/$/_STR/" fake_STR.obs
 
 # ----------------------------------------------------------------------------------------
 # --- Write ABCsampler input file
@@ -182,10 +214,15 @@ echo "simDataName ${PAR_FILE_DNA/.par/-temp.par};${PAR_FILE_STR/.par/-temp.par}"
 #echo "sumStatArgs ${PAR_FILE_DNA/.par}-temp/${PAR_FILE_DNA/.par}-temp_1_1.arp ${PAR_FILE_DNA/.par/-temp.par} 0 1;${PAR_FILE_STR/.par}-temp/${PAR_FILE_STR/.par}-temp_1_1.arp ${PAR_FILE_STR/.par/-temp.par} 0 1" >> $SAMPLER_INPUT
 echo "sumStatArgs ${PAR_FILE_DNA/.par}-temp/${PAR_FILE_DNA/.par}-temp_1_1.arp summary_stats-temp.DNA.txt 0 1;${PAR_FILE_STR/.par}-temp/${PAR_FILE_STR/.par}-temp_1_1.arp summary_stats-temp.STR.txt 0 1" >> $SAMPLER_INPUT
 echo "sumStatName summary_stats-temp.DNA.txt;summary_stats-temp.STR.txt" >> $SAMPLER_INPUT
+echo "scriptAfterSS ../../../scripts/add_suffix_to_sumstats.sh;../../../scripts/add_suffix_to_sumstats.sh" >> $SAMPLER_INPUT
+echo "scriptAfterSSArgs summary_stats-temp.DNA.txt DNA;summary_stats-temp.STR.txt STR" >> $SAMPLER_INPUT
+echo "executionErrors warn" >> $SAMPLER_INPUT
 echo "task simulate" >> $SAMPLER_INPUT
 echo "verbose" >> $SAMPLER_INPUT
 
-cp $ARLSUMSTAT_DIR/arl_run.modified.ars arl_run.ars
+#cp $ARLSUMSTAT_DIR/arl_run.modified.ars arl_run.ars
+# Now with more Tajima's D and Fu's FS
+sed -e "s/^TaskNumber=.*/TaskNumber=18499/" $ARLSUMSTAT_DIR/arl_run.ars > arl_run.ars
 cp $ARLSUMSTAT_DIR/ssdefs.modified.txt  ssdefs.txt
 
 ln -s `which fsc25` fsc25
